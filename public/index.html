@@ -134,17 +134,6 @@
         self.disabled(true);
       }
     }
-    function secondsToDateString (seconds) { 
-      var hours=Math.floor(a/3600); 
-      var minutes=Math.floor(a/60)-(hours*60); 
-      var seconds=a-(hours*3600)-(minutes*60); 
-      
-      var hs=' hour';var ms=' minute';var ss=' second'; 
-      if (hours!=1) {hs+='s'} 
-      if (minutes!=1) {ms+='s'} 
-      if (seconds!=1) {ss+='s'} 
-      return hours+hs+', '+minutes+ms+', '+seconds+ss 
-    } 
     var viewModel = {
       countTarget: ko.observable(30),
       stopwatches: []
