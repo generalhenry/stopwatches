@@ -1,4 +1,204 @@
 <!DOCTYPE html>
-<title>stopwatches</title>
-
-<h1>stopwatches</h1>
+<html>
+<head>
+  <script src='http://code.jquery.com/jquery-1.7.js'></script>
+  <script 
+    src='http://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/jquery.tmpl.js'>
+  </script>
+  <script 
+    src='http://cdnjs.cloudflare.com/ajax/libs/knockout/1.2.1/knockout-min.js'>
+    </script>
+  <script
+    src='https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js'>
+    </script>
+  <link href='http://fonts.googleapis.com/css?family=Black+Ops+One' rel='stylesheet' type='text/css'>
+  <style>
+    body, input, button {
+     background-color: black;
+     color: #FF4E8E;
+     font-family: 'Black Ops One';
+     font-size: 2em;
+     text-align: center;
+    }
+    input, button {
+     font-size: 1em;
+     border-radius: 10px;
+     border: 5px solid #131336;
+    }
+    input {
+      width: 200px; 
+      text-align: right;
+    }
+    button {
+      font-size: 0.7em;
+      background-color: #FF4E8E;
+      color: #131336;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #CC2E4E;
+    }
+    button:active {
+      background-color: #FF2E4E;
+    }
+    button.disabled {
+      background-color: black;
+      cursor: default;
+    }
+    #main {
+      margin: 0 auto;
+    }
+    h1 {
+      font-weight: normal; 
+    }
+    .stopwatch {
+      display: inline-block; 
+      padding: 30px;
+    }
+    .currentTime {
+      font-size: 1em; 
+      text-align: left;
+    }
+  </style>
+  <title>Stopwatches</title>
+  <script>
+    function Stopwatch (descending) {
+      var self = this, interval;
+      if(descending) {
+        self.currentTime = ko.observable(viewModel.countTarget());
+        viewModel.countTarget.subscribe(function () {
+          self.currentTime(viewModel.countTarget());
+        });
+      } else {
+        self.currentTime = ko.observable(0); 
+        viewModel.countTarget.subscribe(function () {
+          self.currentTime(0);
+        });
+      }
+      function resetTime () {
+        if(descending) {
+          self.currentTime(viewModel.countTarget());
+        } else {
+          self.currentTime(0); 
+        }
+      }
+      this.start = function () {
+        if(self.disabled()) {
+          return false; 
+        }
+        interval = setInterval( function () {
+          if(descending) {
+            self.currentTime(self.currentTime() - 1);
+            if(self.currentTime() === 0) {
+              clearInterval(interval);
+              ding();
+            }
+          } else {
+            self.currentTime(self.currentTime() + 1);
+            if(self.currentTime() === viewModel.countTarget()) {
+              clearInterval(interval);
+              ding();
+            }
+          }
+        }, 1000);
+      };
+      this.pause = function () {
+        if(self.disabled()) {
+          return false; 
+        }
+        clearInterval(interval);
+      };
+      this.stop = function () {
+        self.disabled(false);
+        clearInterval(interval);
+        resetTime();
+      };
+      this.disabled = ko.observable(false);
+      this.days = ko.observable(0);
+      this.minutes = ko.observable(0);
+      this.hours = ko.observable(0);
+      this.seconds = ko.observable(0);
+      function setTime () {
+        var days = ~~(self.currentTime() / 86400),
+         hours = ~~(self.currentTime() / 3600) - days * 24,
+         minutes =  ~~(self.currentTime() / 60) - days * 1440 - hours * 60,
+         seconds = self.currentTime() - days * 86400 - hours * 3600 - minutes * 60;
+        self.days(days);
+        self.hours(hours);
+        self.minutes(minutes);
+        self.seconds(seconds);
+      }
+      setTime();
+      this.currentTime.subscribe(setTime);
+      function ding () {
+        self.disabled(true);
+      }
+    }
+    function secondsToDateString (seconds) { 
+      var hours=Math.floor(a/3600); 
+      var minutes=Math.floor(a/60)-(hours*60); 
+      var seconds=a-(hours*3600)-(minutes*60); 
+      
+      var hs=' hour';var ms=' minute';var ss=' second'; 
+      if (hours!=1) {hs+='s'} 
+      if (minutes!=1) {ms+='s'} 
+      if (seconds!=1) {ss+='s'} 
+      return hours+hs+', '+minutes+ms+', '+seconds+ss 
+    } 
+    var viewModel = {
+      countTarget: ko.observable(30),
+      stopwatches: []
+    };
+    viewModel.countTarget.subscribe(function () {
+      viewModel.countTarget(~~viewModel.countTarget());
+    });
+    viewModel.stopwatches.push(new Stopwatch());
+    viewModel.stopwatches.push(new Stopwatch(true));
+    $(function () {
+      ko.applyBindings(viewModel);
+    });
+  </script>
+  <script id='mainTmpl' type='text/x-jquery-tmpl'>
+    <div id='main'>
+      <h1>Stopwatches</h1>
+      <div>
+        <label for='countTarget'>Count Target</label>
+        <input id='countTarget' data-bind='value: countTarget'>
+        <label for='countTarget'>seconds</label>
+      </div>
+      <div id='stopwatches' data-bind='template: {
+        name: "stopwatchTmpl",
+        foreach: stopwatches
+      }'></div>
+    </div>
+  </script>
+  <script id='stopwatchTmpl' type='text/x-jquery-tmpl'>
+    <div class='stopwatch'>
+      <div class='currentTime'>
+        <div>
+          <label>Days:</label>
+          <span data-bind='text: days'></span>
+        </div>
+        <div>
+          <label>Hours:</label>
+          <span data-bind='text: hours'></span>
+        </div>
+        <div>
+          <label>Minutes:</label>
+          <span data-bind='text: minutes'></span>
+        </div>
+        <div>
+          <label>Seconds:</label>
+          <span data-bind='text: seconds'></span>
+        </div>
+      </div>
+      <button data-bind='click: start, css: { disabled: disabled }'>start</button>
+      <button data-bind='click: pause, css: { disabled: disabled }'>pause</button>
+      <button data-bind='click: stop'>stop</button>
+    </div>
+  </script>
+</head>
+<body data-bind='template: "mainTmpl"'>
+  Loading . . .
+</body>
+</html>
